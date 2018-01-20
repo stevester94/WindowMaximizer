@@ -1,6 +1,6 @@
 # The target window name to maximize, will minimize all other windows
 
-target = u'C:\\Windows\\system32\\cmd.exe'
+target = u'VSee Call'
 
 import ctypes
 import sys
@@ -41,6 +41,29 @@ def minimizeAllExceptTarget(target):
 def setCursorPosition(x, y):
     ctypes.windll.user32.SetCursorPos(x, y)
 
+def wakeScreen():
+    print "Waking screen..."
+    import win32gui
+    import win32con
+    SC_MONITORPOWER = 0xF170
+    win32gui.SendMessage(win32con.HWND_BROADCAST, win32con.WM_SYSCOMMAND, SC_MONITORPOWER, -1)
+
+def jitterMouse():
+    print "jitterMouse called"
+
+    setCursorPosition(0,0)
+    time.sleep(0.10)
+    setCursorPosition(10,10)
+    time.sleep(0.10)
+    setCursorPosition(0,0)
+    time.sleep(0.10)
+    setCursorPosition(10,10)
+    time.sleep(0.10)
+    setCursorPosition(0,0)
+    time.sleep(0.10)
+    setCursorPosition(10,10)
+    time.sleep(0.10)
+
 def checkIfTargetExists(target):
     windows = getAllWindows()
 
@@ -59,7 +82,9 @@ def unitTest():
     print""
 
     print "Moving mouse to (0,0)"
-    setCursorPosition(0,0)
+
+    jitterMouse()
+
     print ""
     
     print "Minimizing all except target: " + target
@@ -70,14 +95,20 @@ def unitTest():
 def mainLoop():
     while True:
         if checkIfTargetExists(target):
-            # Jitter mouse
-            setCursorPosition(0,0)
-            setCursorPosition(1,1)
+            print "Target exists, waking"
+            # Keep screen awake (Repeated calls are necessary)
+            wakeScreen()
 
             # Minimize all but target
             minimizeAllExceptTarget(target)
-        time.sleep(1)
+        time.sleep(0.5)
 
+def sleepTest():
+    print "Executing sleep test"
+    time.sleep(70)
+
+    while True:
+        wakeScreen()
 if __name__ == "__main__":
     print "test: run the unit test"
     print "list: print all windows"
@@ -88,4 +119,6 @@ if __name__ == "__main__":
     if option == "test": unitTest()
     if option == "list": 
         for w in getAllWindows(): print w
+    if option == "sleep":
+        sleepTest()
     if option == "main": mainLoop()
